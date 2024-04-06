@@ -37,15 +37,15 @@ def write_ohlcv():
     for row in ohlcv:
       writer.writerow(row)
 
+def read_ohclv():
+  with open("ohlcv.csv", "r") as f:
+    reader = csv.reader(f)
+    header = next(reader)
+    print(header)
+    for row in reader:
+      print(row)
 
-def get_upper_slope():
-  exchange = ccxt.binance()
-  symbol = "BTC/USD"
-  timeframe = "15m"
-  since = exchange.milliseconds() - 900 * 1000 * 64
-  limit = 64
+# def get_upper_slope():
+  
 
-  ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
-  print(ohlcv)
-
-write_ohlcv()
+read_ohclv()
