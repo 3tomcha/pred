@@ -21,3 +21,31 @@ with open("pred.csv", "w") as f:
   writer = csv.writer(f)
   writer.writerow([data[0], data[1], data[2]])
 
+def write_ohlcv():
+  header = ["timestamp", "open",  "high", "low", "close", "volume"]
+  exchange = ccxt.binance()
+  symbol = "BTC/USD"
+  timeframe = "15m"
+  since = exchange.milliseconds() - 900 * 1000 * 64
+  limit = 64
+
+  ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+
+  with open("ohlcv.csv", "w") as f:
+    writer = csv.writer(f)
+    writer.writerow(header)
+    for row in ohlcv:
+      writer.writerow(row)
+
+
+def get_upper_slope():
+  exchange = ccxt.binance()
+  symbol = "BTC/USD"
+  timeframe = "15m"
+  since = exchange.milliseconds() - 900 * 1000 * 64
+  limit = 64
+
+  ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+  print(ohlcv)
+
+write_ohlcv()
