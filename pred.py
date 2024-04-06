@@ -44,12 +44,59 @@ def write_ohlcv():
 def read_ohclv():
   with open("ohlcv.csv", "r") as f:
     reader = csv.reader(f)
-    header = next(reader)
-    print(header)
-    for row in reader:
-      print(row)
+  return reader
 
-# def get_upper_slope():
+def get_upper_slope():
+  high1 = 0
+  high2 = 0
+  tmp = 0
+  ts1 = 0
+  ts2 = 0
+
+  with open("ohlcv.csv", "r") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+      if float(row["high"]) > high1 and abs(ts1 - float(row["timestamp"])) > 1800:
+        high2 = high1
+        ts2 = ts1
+        high1 = float(row["high"])
+        ts1 = float(row["timestamp"])
+    for row in reader:
+      if ts1 < float(row["timestamp"]) and abs(ts1 - float(row["timestamp"])) > 1800:
+        if tmp < float(row["high"]):
+          high2 = float(row["high"])
+          ts2 = float(row["timestamp"])
+          tmp = high2
+
+    # print(ts1, ts2)
+    if ts1 > ts2:
+      up_slope = round((high1 - high2) / ts1 - ts2, 6)
+    else:
+      up_slope = round((high2 - high1) / ts2 - ts1, 6)
+    
+    up_slope = format_float(up_slope)
+    arr.append(up_slope)
+
+    return up_slope
+
+def format_float(v):
+    s = str(v)
+    if 'e' in s:
+        i = s.index('e')
+        exponent = int(s[i + 1:])
+        mantissa = s[:i]
+        if '.' not in mantissa:
+            frac_len = 0
+        else:
+            frac_len = len(mantissa) - mantissa.index('.') - 1
+        frac_len -= exponent
+        if frac_len <= 0:
+            s = str(int(v))
+        else:
+            s = f'%.{int(frac_len)}f' % v
+    if '.' not in s:
+        s += '.0'
+    return s
 
 def pred(arr):
   df = pd.read_csv("train.csv")  
@@ -88,9 +135,10 @@ def pred(arr):
 
   return(pred)
 
-# read_ohclv()
-with open("pred.csv", "a") as f:
-  writer = csv.writer(f)
-  writer.writerow(arr)
-fea = pd.read_csv("pred.csv")  
-pred(fea)
+up_slope = get_upper_slope()
+print(up_slope)
+# with open("pred.csv", "a") as f:
+#   writer = csv.writer(f)
+#   writer.writerow(arr)
+# fea = pd.read_csv("pred.csv")  
+# pred(fea)
