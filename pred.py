@@ -1,7 +1,11 @@
 import csv
+from random import shuffle
 import ccxt
 import os
 from dotenv import load_dotenv
+import pandas as pd
+from sklearn.model_selection import *
+import lightgbm as lgb
 
 load_dotenv()
 
@@ -46,6 +50,47 @@ def read_ohclv():
       print(row)
 
 # def get_upper_slope():
-  
 
-read_ohclv()
+def pred(arr):
+  df = pd.read_csv("train.csv")  
+  X = df.drop("#af1hpr", axis=1)
+  y = df["#af1hpr"]
+
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+  X_train, X_validation, y_train, y_validation = train_test_split(X_train, y_train, test_size=0.2, shuffle=False)
+
+  lgb_train = lgb.Dataset(X_train, y_train)
+  lgb_eval = lgb.Dataset(X_validation, y_validation, reference=lgb_train)
+  params = {
+    "task": "train",
+    "boosting": "gbdt",
+    "objective": "regression",
+    "metric": {"mse"},
+    "num_leaves": 78,
+    "drop_rate": 0.05,
+    "learing_rate": 0.01,
+    "seed": 71,
+    "verbose": 0,
+    "device": "cpu"
+  }
+  evaluation_results = {}
+  model = lgb.train(params, 
+                    lgb_train, 
+                    num_boost_round=10000,
+                    valid_sets=[lgb_train, lgb_eval],
+                    valid_names=["Train", "Valid"],
+                    evals_result=evaluation_results,
+                    early_stopping_rounds=1000,
+                    verbose_eval=100)
+  va_pred = model.predict(X_validation)
+  feature = arr
+  pred = model.predict(feature)
+
+  return(pred)
+
+# read_ohclv()
+with open("pred.csv", "a") as f:
+  writer = csv.writer(f)
+  writer.writerow(arr)
+fea = pd.read_csv("pred.csv")  
+pred(fea)
