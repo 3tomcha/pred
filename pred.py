@@ -70,14 +70,45 @@ def get_upper_slope():
 
     # print(ts1, ts2)
     if ts1 > ts2:
-      up_slope = round((high1 - high2) / ts1 - ts2, 6)
+      up_slope = round((high1 - high2) / (ts1 - ts2), 6)
     else:
-      up_slope = round((high2 - high1) / ts2 - ts1, 6)
+      up_slope = round((high2 - high1) / (ts2 - ts1), 6)
     
     up_slope = format_float(up_slope)
     arr.append(up_slope)
 
     return up_slope
+  
+def get_down_slope():
+   low1 = 10000000
+   low2 = 10000000
+   tmp = 10000000
+   ts1 = 0
+   ts2 = 0
+
+   with open("ohlcv.csv", "r") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+      if float(row["low"]) < low1 and abs(ts1 - float(row["timestamp"])) > 1800:
+         low2 = low1
+         ts2 = ts1
+         low1 = float(row["low"])
+         ts1 = float(row["timestamp"])
+    for row in reader:
+      if ts1 < float(row["timestamp"]) and abs(ts1 - float(row["timestamp"])) > 1800:
+        if tmp > float(row["low"]):
+          low2 = float(row["low"])
+          ts2 = float(row["timestamp"])
+          tmp = low2
+    if ts1 > ts2:
+       down_slope = round((low1 - low2) / (ts1 - ts2), 6)
+    else:
+       down_slope = round((low2 - low1) / (ts2 - ts1), 6)
+
+    down_slope = format_float(down_slope)
+    arr.append(down_slope)
+
+    return down_slope
 
 def format_float(v):
     s = str(v)
@@ -136,7 +167,9 @@ def pred(arr):
   return(pred)
 
 up_slope = get_upper_slope()
+down_slope = get_down_slope()
 print(up_slope)
+print(down_slope)
 # with open("pred.csv", "a") as f:
 #   writer = csv.writer(f)
 #   writer.writerow(arr)
