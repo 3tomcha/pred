@@ -151,15 +151,11 @@ def pred(arr):
     "verbose": 0,
     "device": "cpu"
   }
-  evaluation_results = {}
   model = lgb.train(params, 
                     lgb_train, 
                     num_boost_round=10000,
                     valid_sets=[lgb_train, lgb_eval],
-                    valid_names=["Train", "Valid"],
-                    evals_result=evaluation_results,
-                    early_stopping_rounds=1000,
-                    verbose_eval=100)
+                    valid_names=["Train", "Valid"])
   va_pred = model.predict(X_validation)
   feature = arr
   pred = model.predict(feature)
@@ -170,8 +166,16 @@ up_slope = get_upper_slope()
 down_slope = get_down_slope()
 print(up_slope)
 print(down_slope)
-# with open("pred.csv", "a") as f:
-#   writer = csv.writer(f)
-#   writer.writerow(arr)
-# fea = pd.read_csv("pred.csv")  
+
+sum_slope = float(up_slope) + float(down_slope)
+sum_slope = format_float(sum_slope)
+arr.append(sum_slope)
+
+with open("pred.csv", "a") as f:
+  writer = csv.writer(f)
+  writer.writerow(arr)
+fea = pd.read_csv("pred.csv")  
+
+pred = pred(fea)
+print(f"1時間後の価格は現在の価格{pred}です")
 # pred(fea)
